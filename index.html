@@ -2,16 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YOMO ADMIN - Multi-App Secure Cloud Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>YOMO ADMIN - Secure Cloud Control</title>
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts (Outfit Only) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Official Firebase Web SDK CDN (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
     <style>
         :root {
-            /* Light theme colors [Fix 7] */
-            --bg-base: #f6f4fa;
+            /* Light theme colors */
+            --bg-base: #f7f5fd;
             --primary: #7F00FF;
             --primary-gradient: linear-gradient(135deg, #7F00FF, #E100FF);
             --card-bg: #ffffff;
@@ -25,7 +34,7 @@
         }
 
         body.dark-theme {
-            /* Dark theme colors [Fix 7] */
+            /* Dark theme colors */
             --bg-base: #120a21;
             --card-bg: #1d1430;
             --text-main: #f3ecff;
@@ -37,28 +46,298 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Outfit', sans-serif;
             -webkit-tap-highlight-color: transparent;
             transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
 
-        body {
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
             background-color: var(--bg-base);
             color: var(--text-main);
-            padding-bottom: 50px;
         }
 
+        body {
+            padding-bottom: calc(60px + env(safe-area-inset-bottom));
+            padding-top: env(safe-area-inset-top);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* login page layout */
+        .login-screen-wrapper {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #efe8fc, #f8f5fd);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        body.dark-theme .login-screen-wrapper {
+            background: linear-gradient(135deg, #120a21, #1d1430);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--card-bg);
+            border-radius: 30px;
+            padding: 32px 24px;
+            box-shadow: 0 15px 45px rgba(127, 0, 255, 0.08);
+            border: 1.5px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .login-badge {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-gradient);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 8px 24px rgba(127, 0, 255, 0.3);
+            margin-bottom: 24px;
+        }
+
+        .login-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .login-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 28px;
+        }
+
+        /* Header Area - Permanently Fixed at Top with 1px adaptable light-grey border */
         header {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 72px;
+            z-index: 99999 !important;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 16px 24px;
             background-color: var(--card-bg);
-            border-bottom: 1.5px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            border: 1px solid var(--border-color) !important;
+            box-sizing: border-box;
             box-shadow: 0 4px 20px rgba(127, 0, 255, 0.02);
+        }
+
+        /* Dashboard Top Wrapper - Pushes rest of content below the fixed header to prevent overlap */
+        .sticky-top-container {
+            position: relative;
+            background-color: var(--bg-base);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-top: 72px; 
+            box-shadow: 0 4px 20px rgba(127, 0, 255, 0.03);
+        }
+
+        body.dark-theme .sticky-top-container {
+            background-color: var(--bg-base);
+        }
+
+        /* Upgraded Metric Status widgets */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 16px;
+            padding: 16px 24px;
+            width: 100%;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 20px; 
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px rgba(127, 0, 255, 0.03);
+            border: 1.5px solid rgba(235, 223, 240, 0.4);
+            width: 100%;
+        }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            flex-shrink: 0;
+        }
+
+        .stat-icon.purple {
+            background-color: #f4ecff;
+            color: var(--primary);
+        }
+
+        .stat-icon.green {
+            background-color: #e5f9f0;
+            color: var(--success);
+        }
+
+        .stat-icon.red {
+            background-color: #fbe8ea;
+            color: var(--error);
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .stat-info .stat-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stat-info .stat-label {
+            font-size: 10px;
+            color: var(--text-sub);
+            font-weight: 600;
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 400px) {
+            .stat-card {
+                padding: 10px;
+                gap: 8px;
+            }
+            .stat-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .stat-info .stat-value {
+                font-size: 14px;
+            }
+            .stat-info .stat-label {
+                font-size: 9px;
+            }
+        }
+
+        /* Tab Bar styling */
+        .tabs {
+            display: flex;
+            border-bottom: 1.5px solid var(--border-color);
+            padding: 0 24px;
+            background-color: var(--card-bg);
+            gap: 8px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px 8px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-sub);
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            content: "";
+            position: absolute;
+            bottom: -1.5px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary);
+            border-radius: 50px;
+        }
+
+        /* Main Scrollable Content Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            padding: 24px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .column-full {
+            display: grid;
+            gap: 24px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Prevent side-by-side structures on Mobile viewports */
+        #pane-manage, #pane-settings {
+            grid-template-columns: 1fr !important;
+        }
+
+        @media (min-width: 992px) {
+            #pane-manage {
+                grid-template-columns: 1.25fr 1fr !important;
+            }
+            #pane-settings {
+                grid-template-columns: 1fr 1fr !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .tabs {
+                padding: 0 16px;
+            }
+            .stats-container {
+                padding: 12px 16px;
+            }
+            .main-grid {
+                padding: 16px;
+                gap: 16px;
+            }
+            header {
+                padding: 12px 16px;
+                height: 64px; /* Mobile header fixed height */
+            }
+            .sticky-top-container {
+                padding-top: 64px; /* Offsets top for mobile */
+            }
         }
 
         .header-logo {
@@ -122,115 +401,60 @@
             color: var(--error);
         }
 
-        /* Firebase configuration Slide-down Settings drawer [Fix 3] */
-        .settings-drawer {
-            position: fixed;
-            top: -400px;
-            left: 0;
-            right: 0;
-            background-color: var(--card-bg);
-            border-bottom: 2px solid var(--border-color);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
-            z-index: 999;
-            padding: 24px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-width: 600px;
-            margin: 0 auto;
-            border-bottom-left-radius: 24px;
-            border-bottom-right-radius: 24px;
-        }
-
-        .settings-drawer.open {
-            top: 75px; 
-        }
-
-        /* Metric Widgets */
-        .stats-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            padding: 20px 24px;
-        }
-
-        .stat-card {
-            background-color: var(--card-bg);
-            border-radius: 24px; 
-            padding: 18px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            box-shadow: 0 10px 30px rgba(127, 0, 255, 0.03);
-            border: 1.5px solid rgba(235, 223, 240, 0.4);
-            transition: all 0.3s ease;
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-        }
-
-        .stat-icon.purple {
-            background-color: #f4ecff;
-            color: var(--primary);
-        }
-
-        .stat-icon.green {
-            background-color: #e5f9f0;
-            color: var(--success);
-        }
-
-        .stat-icon.red {
-            background-color: #fbe8ea;
-            color: var(--error);
-        }
-
-        .stat-info .stat-value {
-            font-size: 18px;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-        }
-
-        .stat-info .stat-label {
-            font-size: 12px;
-            color: var(--text-sub);
-            font-weight: 600;
-            margin-top: 2px;
-        }
-
-        /* Fix 4: Professional Responsive Desktop-Mobile layout split */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1.1fr 1fr;
-            gap: 24px;
-            padding: 0 24px;
-        }
-
-        @media (max-width: 1000px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
+        /* Standalone App Cards & Form Cards */
         .section-card {
             background-color: var(--card-bg);
-            border-radius: 24px;
+            border-radius: 28px;
             padding: 24px;
-            box-shadow: 0 10px 30px rgba(127, 0, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(127, 0, 255, 0.04);
             border: 1.5px solid var(--border-color);
-            margin-bottom: 24px;
+            width: 100%;
+            box-sizing: border-box;
+            height: auto !important; 
+            align-self: start; 
+        }
+
+        /* App configurations layout as standalone cards with search */
+        #card-pushed-list {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+        }
+
+        #card-pushed-list .card-header {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 16px;
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #card-pushed-list .input-group {
+            margin-bottom: 20px;
+        }
+
+        #card-pushed-list .input-field {
+            background-color: var(--card-bg) !important;
+            border: 1.5px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(127, 0, 255, 0.02);
+        }
+
+        @media (max-width: 480px) {
+            .section-card {
+                padding: 16px;
+                border-radius: 18px;
+            }
         }
 
         .card-header {
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 800;
             color: var(--primary);
             margin-bottom: 20px;
@@ -239,7 +463,8 @@
         }
 
         .input-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
+            width: 100%;
         }
 
         .input-label {
@@ -254,13 +479,14 @@
 
         .input-field {
             width: 100%;
+            height: 52px; 
             padding: 12px 16px;
             border: 1.5px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 14px;
             color: var(--text-main);
             outline: none;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
             box-sizing: border-box;
             background-color: #fdfcff;
         }
@@ -280,8 +506,9 @@
         }
 
         textarea.input-field {
+            height: auto;
+            min-height: 140px; 
             resize: vertical;
-            min-height: 100px;
         }
 
         select.input-field {
@@ -292,18 +519,22 @@
             background-size: 16px;
         }
 
+        /* Spacing switch aligned to right */
         .switch-group {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #fdfaff;
+            padding: 14px 0;
+            border-bottom: 1.5px solid rgba(235, 223, 240, 0.3);
+            gap: 16px;
         }
 
         .switch-label {
             font-size: 14px;
             font-weight: 600;
             color: var(--text-main);
+            text-align: left;
+            flex: 1;
         }
 
         .switch {
@@ -311,6 +542,7 @@
             display: inline-block;
             width: 48px;
             height: 26px;
+            flex-shrink: 0;
         }
 
         .switch input {
@@ -352,15 +584,24 @@
             transform: translateX(22px);
         }
 
+        /* Grid elements stacking correctly on Mobile viewports */
         .color-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
         }
 
+        @media (max-width: 600px) {
+            .color-row {
+                grid-template-columns: 1fr !important;
+                gap: 12px;
+            }
+        }
+
+        /* Button elements height */
         .btn-primary {
             width: 100%;
-            padding: 16px;
+            height: 52px;
             border-radius: 16px;
             background: var(--primary-gradient);
             color: white;
@@ -384,13 +625,17 @@
             background: #ffffff;
             color: var(--primary);
             border: 1.5px solid var(--primary);
-            padding: 12px;
-            border-radius: 12px;
+            height: 48px;
+            border-radius: 14px;
             font-weight: 700;
             font-size: 13px;
             cursor: pointer;
             width: 100%;
             transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
         body.dark-theme .btn-secondary {
@@ -403,106 +648,93 @@
             background-color: #f7f3ff;
         }
 
-        .toast {
+        /* Capsule Toast Notification System */
+        .toast-wrapper {
             position: fixed;
-            bottom: 24px;
+            bottom: 30px;
             left: 50%;
-            transform: translate(-50%, 50px);
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            transform: translate(-50%, 30px);
+            background: linear-gradient(135deg, #7F00FF, #0077FF); 
+            color: #ffffff;
+            padding: 10px 24px;
+            border-radius: 30px; 
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 8px 25px rgba(127, 0, 255, 0.25);
             opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 10000;
+            transition: all 0.30s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+            z-index: 11000;
+            white-space: nowrap;
+            pointer-events: none;
+            backdrop-filter: blur(4px); 
         }
 
-        .toast.show {
+        .toast-wrapper.show {
             transform: translate(-50%, 0);
             opacity: 1;
         }
 
-        .toast-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .toast-error {
-            background: var(--error);
-            color: white;
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Fix 6: Highly polished app configuration cards list mimicking screenshot layout [5, 6] */
+        /* Configuration items spacing */
         .app-list {
             display: flex;
             flex-direction: column;
             gap: 12px;
             margin-top: 15px;
-            max-height: 400px;
-            overflow-y: auto;
+            max-height: none !important; 
+            overflow-y: visible;
         }
 
+        /* Standalone custom app item cards */
         .app-item {
-            display: flex;
+            display: flex !important;
+            flex-direction: row !important;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 16px;
-            border-radius: 18px;
-            background-color: #fdfcff;
-            border: 1.5px solid var(--border-color);
+            padding: 16px 20px !important;
+            border-radius: 20px !important; 
+            background-color: var(--card-bg) !important;
+            border: 1.5px solid var(--border-color) !important;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+            box-shadow: 0 6px 18px rgba(127, 0, 255, 0.02) !important;
+            gap: 12px;
+            width: 100% !important;
         }
 
         body.dark-theme .app-item {
-            background-color: #170d24;
+            background-color: #170d24 !important;
         }
 
         .app-item:hover, .app-item.selected {
-            border-color: var(--primary);
-            background-color: #f4ecff;
+            border-color: var(--primary) !important;
+            background-color: #f4ecff !important;
         }
 
         body.dark-theme .app-item:hover, body.dark-theme .app-item.selected {
-            background-color: #271638;
+            background-color: #271638 !important;
         }
 
         .app-item-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+            overflow: hidden;
         }
 
-        /* Squircle App Icons in the list card */
         .app-item-icon-wrapper {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             background-color: #fff;
-            border-radius: 12px; /* Perfect Squircle corners */
+            border-radius: 12px;
             border: 2.5px solid #FF003C;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            flex-shrink: 0;
         }
 
         .app-item-icon {
@@ -514,37 +746,46 @@
         .app-item-meta {
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .app-item-name {
             font-weight: 700;
-            font-size: 14px;
+            font-size: 15px;
             color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .app-item-pkg {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-sub);
-            margin-top: 2px;
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .app-item-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-shrink: 0;
         }
 
         .btn-action-list {
-            background: none;
+            width: 38px;
+            height: 38px;
             border: none;
             color: var(--primary);
             cursor: pointer;
-            padding: 8px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
             background-color: #f3ecff;
         }
 
@@ -561,24 +802,38 @@
             background-color: #3d1c24;
         }
 
-        /* Java Dialog Live Preview Replica (Squircle shape matched) */
+        .btn-action-list:active {
+            transform: scale(0.9);
+        }
+
+        /* Java Dialog preview structure */
         .preview-wrapper {
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 10px 0;
+            width: 100%;
+            overflow: hidden;
         }
 
         .java-dialog {
             width: 100%;
-            max-width: 360px;
-            border-radius: 32px;
+            max-width: 340px;
+            border-radius: 28px;
             border: 2px solid #D3D3D3;
             padding: 20px;
             box-sizing: border-box;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
             text-align: left;
             position: relative;
+            transform-origin: center;
+        }
+
+        @media (max-width: 380px) {
+            .java-dialog {
+                transform: scale(0.9);
+                margin: -15px 0;
+            }
         }
 
         .java-header {
@@ -592,7 +847,7 @@
             width: 80px;
             height: 80px;
             background-color: #fff;
-            border-radius: 18px; /* Perfect Squircle */
+            border-radius: 18px;
             border: 3px solid #FF003C;
             box-sizing: border-box;
             position: relative;
@@ -601,6 +856,7 @@
             justify-content: center;
             overflow: hidden;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            flex-shrink: 0;
         }
 
         .java-logo {
@@ -672,363 +928,398 @@
             text-align: center;
             margin-top: 15px;
         }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header Area -->
-    <header>
-        <div class="header-logo">
-            <div class="admin-logo-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0077FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
+    <!-- SECTION: YOMO CONSOLE LOGIN SCREEN -->
+    <div class="login-screen-wrapper" id="view-login-screen">
+        <div class="login-card">
+            <!-- Professional Lucide Lock Admin Icon -->
+            <div class="login-badge">
+                <i data-lucide="lock" style="width: 32px; height: 32px; stroke-width: 2.5px;"></i>
             </div>
-            YOMO ADMIN <span class="badge">Secure</span>
-        </div>
-        <div class="header-right">
-            <!-- Toggler for Firebase Settings Drawer [Fix 3] -->
-            <button class="btn-header-action" onclick="toggleSettingsDrawer()" title="Firebase Settings">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-            </button>
-            <button class="btn-header-action red" onclick="clearFirebaseConfig()" title="Disconnect Database">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-            </button>
-        </div>
-    </header>
-
-    <!-- Slide-Down Drawer for Firebase URL Config -->
-    <div class="settings-drawer" id="drawer-settings">
-        <div class="card-header" style="justify-content: space-between;">
-            <span>🔑 Firebase Connection Drawer</span>
-            <button class="btn-delete-app" onclick="toggleSettingsDrawer()">✖</button>
-        </div>
-        <div class="input-group">
-            <label class="input-label">Firebase Database URL</label>
-            <input type="text" class="input-field" id="fb-db-url" placeholder="https://your-db-default-rtdb.firebaseio.com/">
-        </div>
-        <button class="btn-primary" onclick="handleFirebaseConnection()">Connect & Save</button>
-    </div>
-
-    <!-- Status widgets -->
-    <div class="stats-container">
-        <div class="stat-card" id="card-status-mode">
-            <div class="stat-icon purple" id="mode-icon">
-                📱
-            </div>
-            <div class="stat-info">
-                <div class="stat-value" id="mode-text">Active</div>
-                <div class="stat-label" id="mode-sub">Update Mode</div>
-            </div>
-        </div>
-        <div class="stat-card" id="card-status-conn">
-            <div class="stat-icon red" id="status-icon">
-                🔒
-            </div>
-            <div class="stat-info">
-                <div class="stat-value" id="status-text">Disconnected</div>
-                <div class="stat-label" id="status-sub">Offline Node</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Navigation Tab bar -->
-    <div class="tabs">
-        <button class="tab-btn active" id="tab-manage">Manage Update</button>
-    </div>
-
-    <!-- Fix 4: Desktop Grid Layout Split (Left Side: Form Editor + Preview | Right Side: List + Settings) -->
-    <div class="main-grid">
-
-        <!-- Column 1 (Left Side): Config Parameters Editor & Live Preview -->
-        <div class="left-column">
+            <h1 class="login-title">YOMO CONSOLE</h1>
+            <p class="login-desc">Log in using Firebase Database URL to manage storefront.</p>
             
-            <!-- Parameters Editor Card -->
-            <div class="section-card" id="card-editor" style="display: none;">
-                <div class="card-header" id="editor-title-header">⚙️ Update Dialog Parameters</div>
-                
-                <!-- Package Name field [Compulsory - Fix 2 & 6] -->
-                <div class="input-group">
-                    <label class="input-label">Application Package Name (Compulsory)</label>
-                    <input type="text" class="input-field" id="input-pkg-name" placeholder="E.g. com.example.app" oninput="sanitizePackageInput(this); updateLocalPreviewFromForm();">
-                </div>
+            <div class="input-group" style="width: 100%; text-align: left;">
+                <label class="input-label" style="color: #3B4CB8;">DATABASE URL</label>
+                <input type="text" class="input-field" id="login-db-url" placeholder="https://your-db-default-rtdb.firebaseio.com/" style="width: 100%;">
+            </div>
+            
+            <button class="btn-primary" id="btn-login-action" onclick="handleLoginConnection()" style="margin-top: 20px; width: 100%;">
+                SIGN IN TO SECURE MODULE
+            </button>
+        </div>
+    </div>
 
-                <div class="switch-group">
-                    <div class="switch-label">Enable Update Popup</div>
-                    <label class="switch">
-                        <input type="checkbox" id="input-enable" onchange="updateLocalPreviewFromForm()">
-                        <span class="slider"></span>
-                    </label>
+    <!-- MAIN DASHBOARD VIEW -->
+    <div id="view-dashboard" style="display: none;">
+        
+        <!-- FIXED STICKY TOP CONTAINER -->
+        <div class="sticky-top-container">
+            <!-- Header Area -->
+            <header>
+                <div class="header-logo">
+                    <div class="admin-logo-icon">
+                        <i data-lucide="shield" style="width: 22px; height: 22px; stroke-width: 2.5px; color: #0077FF;"></i>
+                    </div>
+                    YOMO ADMIN <span class="badge">Secure</span>
                 </div>
-                <div class="switch-group" style="margin-bottom: 20px;">
-                    <div class="switch-label">Force Update (Disables Back Press)</div>
-                    <label class="switch">
-                        <input type="checkbox" id="input-force" onchange="updateLocalPreviewFromForm()">
-                        <span class="slider"></span>
-                    </label>
+                <div class="header-right">
+                    <button class="btn-header-action red" onclick="clearFirebaseConfig()" title="Disconnect Database">
+                        <i data-lucide="log-out" style="width: 20px; height: 20px; stroke-width: 2.5px;"></i>
+                    </button>
                 </div>
+            </header>
 
-                <div class="input-row color-row">
-                    <div class="input-group">
-                        <label class="input-label">App Title Name</label>
-                        <input type="text" class="input-field" id="input-title" placeholder="YOUTUBE PRO" oninput="updateLocalPreviewFromForm()">
+            <!-- Upgraded Metric Status widgets -->
+            <div class="stats-container">
+                <div class="stat-card" id="card-status-mode">
+                    <div class="stat-icon purple" id="mode-icon">
+                        📱
                     </div>
-                    <div class="input-group">
-                        <label class="input-label">Target App Version (appVersion)</label>
-                        <div style="position: relative; display: flex; align-items: center;">
-                            <input type="text" class="input-field" id="input-app-version" placeholder="1.0.0" oninput="updateLocalPreviewFromForm()" style="padding-right: 70px;">
-                            <!-- Auto-Fetch indicator button [Fix 7] -->
-                            <button id="btn-auto-fetch" onclick="autoFetchInstalledVersion()" style="position: absolute; right: 8px; font-size: 10px; font-weight: 800; background-color: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;">FETCH</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="input-row color-row">
-                    <div class="input-group">
-                        <label class="input-label">Release Version (newVersion)</label>
-                        <input type="text" class="input-field" id="input-new-version" placeholder="2.0.0" oninput="updateLocalPreviewFromForm()">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Icon Display Mode</label>
-                        <select class="input-field" id="input-icon-mode" onchange="toggleIconUrlField(); updateLocalPreviewFromForm();">
-                            <option value="system">System Default Launcher</option>
-                            <option value="custom">Custom Remote URL</option>
-                        </select>
+                    <div class="stat-info">
+                        <div class="stat-value" id="mode-text">Active</div>
+                        <div class="stat-label" id="mode-sub">Update Mode</div>
                     </div>
                 </div>
-
-                <div class="input-group" id="group-logo-url" style="display: none;">
-                    <label class="input-label">Custom Logo Image URL</label>
-                    <input type="text" class="input-field" id="input-logo-url" placeholder="https://i.ibb.co/logo.png" oninput="updateLocalPreviewFromForm()">
-                </div>
-
-                <div class="input-group">
-                    <label class="input-label">Update Download URL</label>
-                    <input type="text" class="input-field" id="input-update-url" placeholder="https://mediafire.com/file" oninput="updateLocalPreviewFromForm()">
-                </div>
-
-                <!-- Update Scheduler [7] -->
-                <div class="switch-group" style="padding-bottom: 8px;">
-                    <div class="switch-label" style="font-size: 13px; font-weight: 800; color: var(--primary);">🕒 Enable Update Scheduler</div>
-                    <label class="switch">
-                        <input type="checkbox" id="input-schedule-toggle" onchange="toggleSchedulerFields()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div id="group-scheduler-inputs" style="display: none; border-left: 3px solid var(--primary); padding-left: 14px; margin-bottom: 20px;">
-                    <div class="input-row color-row">
-                        <div class="input-group">
-                            <label class="input-label">Schedule Date</label>
-                            <input type="date" class="input-field" id="input-schedule-date">
-                        </div>
-                        <div class="input-group">
-                            <label class="input-label">Schedule Time</label>
-                            <input type="time" class="input-field" id="input-schedule-time">
-                        </div>
+                <div class="stat-card" id="card-status-conn">
+                    <div class="stat-icon red" id="status-icon">
+                        🔒
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="status-text">Disconnected</div>
+                        <div class="stat-label" id="status-sub">Offline Node</div>
                     </div>
                 </div>
-
-                <div class="input-group">
-                    <label class="input-label">Update Changelog Description (Supports Bullet Points)</label>
-                    <textarea class="input-field" id="input-description" placeholder="• New Features Added&#10;• Bugs Solved" oninput="updateLocalPreviewFromForm()"></textarea>
-                </div>
-
-                <div class="input-row color-row">
-                    <div class="input-group">
-                        <label class="input-label">Exit Button Label</label>
-                        <input type="text" class="input-field" id="input-btn-exit-text" placeholder="EXIT APP" oninput="updateLocalPreviewFromForm()">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Update Button Label</label>
-                        <input type="text" class="input-field" id="input-btn-update-text" placeholder="UPDATE NOW" oninput="updateLocalPreviewFromForm()">
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label class="input-label">Developer Credit Footer Text</label>
-                    <input type="text" class="input-field" id="input-developer" placeholder="Mod by YOMO MODZ" oninput="updateLocalPreviewFromForm()">
-                </div>
-
-                <!-- Custom Gradients Section -->
-                <div class="input-group">
-                    <label class="input-label">Dialog Background Gradient (Comma separated Hex, Left-Right)</label>
-                    <input type="text" class="input-field" id="input-bg-gradient" placeholder="#5C74E5,#8FA2F8" oninput="updateLocalPreviewFromForm()">
-                </div>
-
-                <div class="input-row color-row">
-                    <div class="input-group">
-                        <label class="input-label">Exit Btn Gradient</label>
-                        <input type="text" class="input-field" id="input-exit-gradient" placeholder="#FF496F,#FF5E3A" oninput="updateLocalPreviewFromForm()">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Update Btn Gradient</label>
-                        <input type="text" class="input-field" id="input-update-gradient" placeholder="#00E5FF,#0077FF" oninput="updateLocalPreviewFromForm()">
-                    </div>
-                </div>
-
-                <!-- Visibility Switches -->
-                <div class="switch-group">
-                    <div class="switch-label">Show Application Logo</div>
-                    <label class="switch">
-                        <input type="checkbox" id="input-show-logo" checked onchange="updateLocalPreviewFromForm()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="switch-group">
-                    <div class="switch-label">Show Version Name</div>
-                    <label class="switch">
-                        <input type="checkbox" id="input-show-version" checked onchange="updateLocalPreviewFromForm()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="switch-group">
-                    <div class="switch-label">Show Changelog Box</div>
-                    <label class="switch">
-                        <input type="checkbox" id="input-show-desc" checked onchange="updateLocalPreviewFromForm()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="switch-group">
-                    <div class="switch-label">Show Action Buttons</div>
-                    <label class="switch">
-                        <input type="checkbox" id="input-show-buttons" checked onchange="updateLocalPreviewFromForm()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <div class="switch-group" style="margin-bottom: 25px;">
-                    <div class="switch-label">Show Developer Credit Footer</div>
-                    <label class="switch">
-                        <input type="checkbox" id="input-show-credit" checked onchange="updateLocalPreviewFromForm()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <button class="btn-primary" id="btn-publish" onclick="publishConfiguration()">Publish / Save Configuration</button>
             </div>
 
-            <!-- Java Live Preview Replica Card [Fix 5] -->
-            <div class="section-card" id="card-preview" style="text-align: center;">
-                <div class="card-header" style="justify-content: center;">📺 Java Dialog Live Preview Replica</div>
-                <div class="preview-wrapper">
-                    <div class="java-dialog" id="preview-dialog">
-                        <div class="java-header">
-                            <div class="java-logo-wrapper" id="preview-logo-wrapper">
-                                <img src="data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'%3e%3crect x='2' y='2' width='20' height='20' rx='5' ry='5'%3e%3c/rect%3e%3cpath d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'%3e%3c/svg%3e" class="java-logo" id="preview-logo-img">
+            <!-- Main Navigation Tab bar -->
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-manage" onclick="switchDashboardTab('manage')">Manage Updates</button>
+                <button class="tab-btn" id="tab-settings" onclick="switchDashboardTab('settings')">Settings & Preview</button>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+
+            <!-- TAB 1: MANAGE UPDATES -->
+            <div class="column-full" id="pane-manage" style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px; width: 100%;">
+                
+                <!-- Left Side: App Update Form (Section 1) -->
+                <div class="form-container">
+                    <div class="section-card" id="card-editor">
+                        <div class="card-header" id="editor-title-header">⚙️ Update Dialog Parameters</div>
+                        
+                        <!-- Package Name field (Compulsory) -->
+                        <div class="input-group">
+                            <label class="input-label">Application Package Name (Compulsory)</label>
+                            <input type="text" class="input-field" id="input-pkg-name" placeholder="E.g. com.example.app" oninput="sanitizePackageInput(this); updateLocalPreviewFromForm();">
+                        </div>
+
+                        <div class="switch-group">
+                            <div class="switch-label">Enable Update Popup</div>
+                            <label class="switch">
+                                <input type="checkbox" id="input-enable" onchange="updateLocalPreviewFromForm()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="switch-group" style="margin-bottom: 20px;">
+                            <div class="switch-label">Force Update (Disables Back Press)</div>
+                            <label class="switch">
+                                <input type="checkbox" id="input-force" onchange="updateLocalPreviewFromForm()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="input-row color-row">
+                            <div class="input-group">
+                                <label class="input-label">App Title Name</label>
+                                <input type="text" class="input-field" id="input-title" placeholder="YOUTUBE PRO" oninput="updateLocalPreviewFromForm()">
                             </div>
-                            <div class="java-details">
-                                <div class="java-title" id="preview-title">YOUTUBE PRO</div>
-                                <div class="java-version" id="preview-version">Version 2.0.0</div>
+                            <div class="input-group">
+                                <label class="input-label">Target App Version (appVersion)</label>
+                                <div style="position: relative; display: flex; align-items: center;">
+                                    <input type="text" class="input-field" id="input-app-version" placeholder="1.0.0" oninput="updateLocalPreviewFromForm()" style="padding-right: 70px;">
+                                    <!-- Auto-Fetch indicator button -->
+                                    <button id="btn-auto-fetch" onclick="autoFetchInstalledVersion()" style="position: absolute; right: 8px; font-size: 10px; font-weight: 800; background-color: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer;">FETCH</button>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="java-desc-card" id="preview-desc-card">
-                            • Loading logs...
+                        <div class="input-row color-row">
+                            <div class="input-group">
+                                <label class="input-label">Release Version (newVersion)</label>
+                                <input type="text" class="input-field" id="input-new-version" placeholder="2.0.0" oninput="updateLocalPreviewFromForm()">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Icon Display Mode</label>
+                                <select class="input-field" id="input-icon-mode" onchange="toggleIconUrlField(); updateLocalPreviewFromForm();">
+                                    <option value="system">System Default Launcher</option>
+                                    <option value="custom">Custom Remote URL</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="java-buttons" id="preview-buttons">
-                            <div class="java-btn" id="preview-btn-exit">EXIT APP</div>
-                            <div class="java-btn" id="preview-btn-update">UPDATE NOW</div>
+                        <div class="input-group" id="group-logo-url" style="display: none;">
+                            <label class="input-label">Custom Logo Image URL</label>
+                            <input type="text" class="input-field" id="input-logo-url" placeholder="https://i.ibb.co/logo.png" oninput="updateLocalPreviewFromForm()">
                         </div>
 
-                        <div class="java-credit" id="preview-credit">Mod by YOMO MODZ</div>
+                        <div class="input-group">
+                            <label class="input-label">Update Download URL</label>
+                            <input type="text" class="input-field" id="input-update-url" placeholder="https://mediafire.com/file" oninput="updateLocalPreviewFromForm()">
+                        </div>
+
+                        <!-- Update Scheduler -->
+                        <div class="switch-group" style="padding-bottom: 8px;">
+                            <div class="switch-label" style="font-size: 13px; font-weight: 800; color: var(--primary);">🕒 Enable Update Scheduler</div>
+                            <label class="switch">
+                                <input type="checkbox" id="input-schedule-toggle" onchange="toggleSchedulerFields()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div id="group-scheduler-inputs" style="display: none; border-left: 3px solid var(--primary); padding-left: 14px; margin-bottom: 20px;">
+                            <div class="input-row color-row">
+                                <div class="input-group">
+                                    <label class="input-label">Schedule Date</label>
+                                    <input type="date" class="input-field" id="input-schedule-date">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Schedule Time</label>
+                                    <input type="time" class="input-field" id="input-schedule-time">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Update Changelog Description (Supports Bullet Points)</label>
+                            <textarea class="input-field" id="input-description" placeholder="• New Features Added&#10;• Bugs Solved" oninput="updateLocalPreviewFromForm()"></textarea>
+                        </div>
+
+                        <div class="input-row color-row">
+                            <div class="input-group">
+                                <label class="input-label">Exit Button Label</label>
+                                <input type="text" class="input-field" id="input-btn-exit-text" placeholder="EXIT APP" oninput="updateLocalPreviewFromForm()">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Update Button Label</label>
+                                <input type="text" class="input-field" id="input-btn-update-text" placeholder="UPDATE NOW" oninput="updateLocalPreviewFromForm()">
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label">Developer Credit Footer Text</label>
+                            <input type="text" class="input-field" id="input-developer" placeholder="Mod by YOMO MODZ" oninput="updateLocalPreviewFromForm()">
+                        </div>
+
+                        <!-- Custom Gradients Section -->
+                        <div class="input-group">
+                            <label class="input-label">Dialog Background Gradient (Comma separated Hex, Left-Right)</label>
+                            <input type="text" class="input-field" id="input-bg-gradient" placeholder="#5C74E5,#8FA2F8" oninput="updateLocalPreviewFromForm()">
+                        </div>
+
+                        <div class="input-row color-row">
+                            <div class="input-group">
+                                <label class="input-label">Exit Btn Gradient</label>
+                                <input type="text" class="input-field" id="input-exit-gradient" placeholder="#FF496F,#FF5E3A" oninput="updateLocalPreviewFromForm()">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Update Btn Gradient</label>
+                                <input type="text" class="input-field" id="input-update-gradient" placeholder="#00E5FF,#0077FF" oninput="updateLocalPreviewFromForm()">
+                            </div>
+                        </div>
+
+                        <!-- Visibility Switches -->
+                        <div class="switch-group">
+                            <div class="switch-label">Show Application Logo</div>
+                            <label class="switch">
+                                <input type="checkbox" id="input-show-logo" checked onchange="updateLocalPreviewFromForm()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="switch-group">
+                            <div class="switch-label">Show Version Name</div>
+                            <label class="switch">
+                                <input type="checkbox" id="input-show-version" checked onchange="updateLocalPreviewFromForm()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="switch-group">
+                            <div class="switch-label">Show Changelog Box</div>
+                            <label class="switch">
+                                <input type="checkbox" id="input-show-desc" checked onchange="updateLocalPreviewFromForm()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="switch-group">
+                            <div class="switch-label">Show Action Buttons</div>
+                            <label class="switch">
+                                <input type="checkbox" id="input-show-buttons" checked onchange="updateLocalPreviewFromForm()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="switch-group" style="margin-bottom: 25px;">
+                            <div class="switch-label">Show Developer Credit Footer</div>
+                            <label class="switch">
+                                <input type="checkbox" id="input-show-credit" checked onchange="updateLocalPreviewFromForm()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Fixed Layout Buttons -->
+                        <div class="color-row">
+                            <button class="btn-secondary" id="btn-cancel-edit" onclick="triggerCancelEditAction()" style="display: none;">Cancel Edit</button>
+                            <button class="btn-primary" id="btn-publish" onclick="triggerPublishAction()">Publish Configuration</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Application list (Section 2 - Standalone App Cards style) -->
+                <div class="list-container">
+                    <div class="section-card" id="card-pushed-list" style="height: auto;">
+                        <div class="card-header">📂 Active Update Configurations</div>
+                        
+                        <div class="input-group">
+                            <input type="text" class="input-field" id="search-pushed-input" placeholder="Search pushed apps..." oninput="filterPushedList()">
+                        </div>
+
+                        <div class="app-list" id="pushed-apps-container">
+                            <!-- Populated dynamically via Firebase events -->
+                        </div>
                     </div>
                 </div>
             </div>
 
-        </div>
-
-        <!-- Column 2 (Right Side): Application Database List & Settings -->
-        <div class="right-column">
-            
-            <!-- Dynamic Pushed List [Fix 6: Matches Screenshot Exactly] -->
-            <div class="section-card" id="card-pushed-list" style="display: none;">
-                <div class="card-header">📂 Active Update Configurations</div>
+            <!-- TAB 2: SETTINGS (Section 3: Live Preview + Default Fills) -->
+            <div class="column-full" id="pane-settings" style="display: none; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%;">
                 
-                <div class="input-group">
-                    <input type="text" class="input-field" id="search-pushed-input" placeholder="Search pushed apps..." oninput="filterPushedList()">
-                </div>
+                <!-- Left Side: Live Preview -->
+                <div class="preview-container">
+                    <div class="section-card" style="text-align: center;">
+                        <div class="card-header" style="justify-content: center;">📺 Java Dialog Live Preview Replica</div>
+                        <div class="preview-wrapper">
+                            <div class="java-dialog" id="preview-dialog">
+                                <div class="java-header">
+                                    <div class="java-logo-wrapper" id="preview-logo-wrapper">
+                                        <img src="data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'%3e%3crect x='2' y='2' width='20' height='20' rx='5' ry='5'%3e%3c/rect%3e%3cpath d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'%3e%3c/svg%3e" class="java-logo" id="preview-logo-img">
+                                    </div>
+                                    <div class="java-details">
+                                        <div class="java-title" id="preview-title">YOUTUBE PRO</div>
+                                        <div class="java-version" id="preview-version">Version 2.0.0</div>
+                                    </div>
+                                </div>
 
-                <div class="app-list" id="pushed-apps-container">
-                    <!-- REST polling items -->
-                </div>
-            </div>
+                                <div class="java-desc-card" id="preview-desc-card">
+                                    • Loading logs...
+                                </div>
 
-            <!-- Fix 3 & 7: Global & Default Fill Settings Section -->
-            <div class="section-card" id="card-global-settings" style="display: none;">
-                <div class="card-header">🛠️ Global Settings & Default Fills</div>
+                                <div class="java-buttons" id="preview-buttons">
+                                    <div class="java-btn" id="preview-btn-exit">EXIT APP</div>
+                                    <div class="java-btn" id="preview-btn-update">UPDATE NOW</div>
+                                </div>
 
-                <!-- Fix 3: Default Fill configurations -->
-                <div style="border: 1.5px dashed var(--border-color); padding: 18px; border-radius: 20px; background-color: #fbf9ff; margin-bottom: 20px;">
-                    <div style="font-size: 13px; font-weight: 800; color: var(--primary); margin-bottom: 15px;">🌟 Setup Default Fill Values</div>
-                    
-                    <div class="input-group">
-                        <label class="input-label">Default Credit Text</label>
-                        <input type="text" class="input-field" id="default-developer" placeholder="Mod by YOMO MODZ">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Default Exit Btn Text</label>
-                        <input type="text" class="input-field" id="default-btn-exit-text" placeholder="EXIT APP">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Default Update Btn Text</label>
-                        <input type="text" class="input-field" id="default-btn-update-text" placeholder="UPDATE NOW">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Default Update URL</label>
-                        <input type="text" class="input-field" id="default-update-url" placeholder="https://mediafire.com/file">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Default Bg Gradient</label>
-                        <input type="text" class="input-field" id="default-bg-gradient" placeholder="#5C74E5,#8FA2F8">
-                    </div>
-                    <div class="input-group">
-                        <label class="input-label">Default Description</label>
-                        <textarea class="input-field" id="default-description" placeholder="• New Features Added"></textarea>
-                    </div>
-
-                    <button class="btn-secondary" onclick="saveDefaultFillSettings()">Save Default Fills</button>
-                </div>
-
-                <!-- Fix 7: Theme & Backup/Restore Configuration -->
-                <div style="margin-top: 24px; padding-top: 15px; border-top: 1.5px solid var(--border-color);">
-                    <div class="input-label" style="margin-bottom: 12px;">🎨 Theme Customization</div>
-                    <div class="switch-group" style="border: none; padding: 0 0 16px 0;">
-                        <div class="switch-label">Enable Dark Mode Theme</div>
-                        <label class="switch">
-                            <input type="checkbox" id="input-theme-toggle" onchange="toggleThemeMode()">
-                            <span class="slider"></span>
-                        </label>
+                                <div class="java-credit" id="preview-credit">Mod by YOMO MODZ</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div style="padding-top: 8px;">
-                    <div class="input-label">💾 Backup & Restore Database Node</div>
-                    <div class="color-row">
-                        <button class="btn-secondary" onclick="backupDatabaseData()">Backup JSON</button>
-                        <button class="btn-secondary" onclick="triggerRestoreUpload()">Restore JSON</button>
+                <!-- Right Side: Settings & Default Fills -->
+                <div class="settings-container-pane">
+                    <div class="section-card" id="card-global-settings" style="height: auto;">
+                        <div class="card-header">🛠️ Global Settings & Default Fills</div>
+
+                        <!-- Default Fill configurations -->
+                        <div style="border: 1.5px dashed var(--border-color); padding: 18px; border-radius: 20px; background-color: #fbf9ff; margin-bottom: 20px;">
+                            <div style="font-size: 13px; font-weight: 800; color: var(--primary); margin-bottom: 15px;">🌟 Setup Default Fill Values</div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Default Credit Text</label>
+                                <input type="text" class="input-field" id="default-developer" placeholder="Mod by YOMO MODZ">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Default Exit Btn Text</label>
+                                <input type="text" class="input-field" id="default-btn-exit-text" placeholder="EXIT APP">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Default Update Btn Text</label>
+                                <input type="text" class="input-field" id="default-btn-update-text" placeholder="UPDATE NOW">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Default Update URL</label>
+                                <input type="text" class="input-field" id="default-update-url" placeholder="https://mediafire.com/file">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Default Bg Gradient</label>
+                                <input type="text" class="input-field" id="default-bg-gradient" placeholder="#5C74E5,#8FA2F8">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Default Description</label>
+                                <textarea class="input-field" id="default-description" placeholder="• New Features Added"></textarea>
+                            </div>
+
+                            <button class="btn-secondary" id="btn-save-defaults" onclick="triggerSaveDefaultsAction()">Save Default Fills</button>
+                        </div>
+
+                        <!-- Theme & Backup/Restore Configuration -->
+                        <div style="margin-top: 24px; padding-top: 15px; border-top: 1.5px solid var(--border-color);">
+                            <div class="input-label" style="margin-bottom: 12px;">🎨 Theme Customization</div>
+                            <div class="switch-group" style="border: none; padding: 0 0 16px 0;">
+                                <div class="switch-label">Enable Dark Mode Theme</div>
+                                <label class="switch">
+                                    <input type="checkbox" id="input-theme-toggle" onchange="toggleThemeMode()">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="padding-top: 8px;">
+                            <div class="input-label">💾 Backup & Restore Database Node</div>
+                            <div class="color-row">
+                                <button class="btn-secondary" id="btn-backup-db" onclick="triggerBackupAction()">Backup JSON</button>
+                                <button class="btn-secondary" id="btn-restore-db" onclick="triggerRestoreUpload()">Restore JSON</button>
+                            </div>
+                            <input type="file" id="restore-file-input" style="display: none;" onchange="handleRestoreUpload(this)">
+                        </div>
                     </div>
-                    <input type="file" id="restore-file-input" style="display: none;" onchange="handleRestoreUpload(this)">
                 </div>
+
             </div>
 
         </div>
 
     </div>
+
+    <!-- Capsule Toast system -->
+    <div id="toast-container" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>
 
     <script>
         let dbUrl = "";
         let syncInterval = null;
         let localAppsDatabase = {}; // Local memory of Firebase applications node
+        let isEditingActive = false; // State-guard to completely isolate dropdowns
+        let activeToastTimeout = null;
 
-        // Auto-reconnect on Page load [Fix 1]
+        // Auto-reconnect on Page load
         window.addEventListener('DOMContentLoaded', () => {
             const savedUrl = localStorage.getItem('yomo_db_url');
             
@@ -1040,20 +1331,22 @@
             }
 
             if (savedUrl) {
-                document.getElementById('fb-db-url').value = savedUrl;
+                document.getElementById('login-db-url').value = savedUrl;
+                document.getElementById('view-login-screen').style.display = 'none';
+                document.getElementById('view-dashboard').style.display = 'block';
                 connectFirebase(savedUrl);
-            } else {
-                toggleSettingsDrawer();
             }
+            tryCreateIcons();
         });
 
-        // Settings drawer toggle [Fix 3]
-        function toggleSettingsDrawer() {
-            const drawer = document.getElementById('drawer-settings');
-            drawer.classList.toggle('open');
+        // Initialize Lucide Icons Safely
+        function tryCreateIcons() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
         }
 
-        // Toggle Theme [Fix 7]
+        // Toggle Theme
         function toggleThemeMode() {
             const toggle = document.getElementById('input-theme-toggle').checked;
             if (toggle) {
@@ -1065,12 +1358,54 @@
             }
         }
 
-        // Connect Firebase Node via REST API url [Fix 1]
+        // Action Button Loading Spinner helper
+        function triggerButtonLoading(btnId, callback) {
+            const btn = document.getElementById(btnId);
+            if (!btn || btn.disabled) return;
+            
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `<span class="spinner"></span> Processing...`;
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                if (callback) callback();
+                tryCreateIcons();
+            }, 2000); // 2 seconds delay strictly
+        }
+
+        // Connect Firebase Node via REST API url
+        function handleLoginConnection() {
+            triggerButtonLoading('btn-login-action', () => {
+                let urlInput = document.getElementById('login-db-url').value.trim();
+
+                if (!urlInput) {
+                    showToast("URL Required!", "error");
+                    return;
+                }
+
+                if (!urlInput.startsWith("http://") && !urlInput.startsWith("https://")) {
+                    urlInput = "https://" + urlInput;
+                }
+                if (!urlInput.endsWith("/")) {
+                    urlInput = urlInput + "/";
+                }
+
+                // Immediately switch to dashboard (Fake/Soft Login logic bypass)
+                localStorage.setItem('yomo_db_url', urlInput);
+                document.getElementById('view-login-screen').style.display = 'none';
+                document.getElementById('view-dashboard').style.display = 'block';
+                
+                connectFirebase(urlInput);
+            });
+        }
+
         function handleFirebaseConnection() {
-            let urlInput = document.getElementById('fb-db-url').value.trim();
+            let urlInput = document.getElementById('login-db-url').value.trim();
 
             if (!urlInput) {
-                showToast("Please enter your Firebase Database URL!", false);
+                showToast("URL Required!", "error");
                 return;
             }
 
@@ -1086,7 +1421,6 @@
 
         function connectFirebase(formattedUrl) {
             dbUrl = formattedUrl;
-            
             updateConnectionStatus(false, "Connecting...");
             
             const checkUrl = dbUrl + "apps.json?nocache=" + Date.now();
@@ -1097,45 +1431,38 @@
                     return response.json();
                 })
                 .then(data => {
-                    localStorage.setItem('yomo_db_url', dbUrl);
                     updateConnectionStatus(true);
                     
                     localAppsDatabase = data || {};
                     renderPushedList();
-                    
-                    // Close drawer automatically after connection
-                    const drawer = document.getElementById('drawer-settings');
-                    if (drawer.classList.contains('open')) {
-                        drawer.classList.remove('open');
-                    }
                     
                     // Show editor, settings, and list cards
                     document.getElementById('card-editor').style.display = 'block';
                     document.getElementById('card-pushed-list').style.display = 'block';
                     document.getElementById('card-global-settings').style.display = 'block';
                     
-                    // Auto-load first package config if exists, else load defaults
-                    const keys = Object.keys(localAppsDatabase);
-                    if (keys.length > 0) {
-                        loadAppConfig(keys[0]);
-                    } else {
-                        clearForm();
-                    }
-                    
-                    showToast("Database Connected Successfully!", true);
+                    clearForm();
+                    showToast("Login OK", "success");
                     
                     // Load saved default values into editor if any
                     loadAndApplyDefaultFillSettings();
 
-                    // Start active real-time polling to check remote node edits [2, 4]
+                    // Start active real-time polling to check remote node edits
                     startRealtimeSyncListener();
+                    tryCreateIcons();
                 })
                 .catch(error => {
-                    updateConnectionStatus(false, "Failed");
-                    showToast("Connection failed: Check Database URL or public Rules!", false);
-                    document.getElementById('card-editor').style.display = 'none';
-                    document.getElementById('card-pushed-list').style.display = 'none';
-                    document.getElementById('card-global-settings').style.display = 'none';
+                    // Soft fallbacks so they are NOT locked out of the dashboard interface
+                    updateConnectionStatus(false, "Offline Mode");
+                    showToast("Notice: Loaded in offline bypass mode", "info");
+                    
+                    document.getElementById('card-editor').style.display = 'block';
+                    document.getElementById('card-pushed-list').style.display = 'block';
+                    document.getElementById('card-global-settings').style.display = 'block';
+                    
+                    clearForm();
+                    loadAndApplyDefaultFillSettings();
+                    tryCreateIcons();
                 });
         }
 
@@ -1166,11 +1493,10 @@
                 syncInterval = null;
             }
             updateConnectionStatus(false);
-            document.getElementById('card-editor').style.display = 'none';
-            document.getElementById('card-pushed-list').style.display = 'none';
-            document.getElementById('card-global-settings').style.display = 'none';
+            document.getElementById('view-login-screen').style.display = 'flex';
+            document.getElementById('view-dashboard').style.display = 'none';
             clearForm();
-            showToast("Database Session Disconnected!", false);
+            showToast("Disconnected!", "error");
         }
 
         // Render searchable pushed updates list
@@ -1203,29 +1529,38 @@
                         </div>
                         <div class="app-item-meta">
                             <div class="app-item-name">${app.title || 'Untitled App'}</div>
-                            <div class="app-item-pkg">${cleanPkg}</div>
+                            <div class="app-item-pkg">Version ${app.newVersion || '1.0.0'}</div>
                         </div>
                     </div>
                     <div class="app-item-actions">
+                        <button class="btn-action-list" onclick="event.stopPropagation(); loadAppConfig('${key}')" title="Edit App Update">
+                            <i data-lucide="edit-3" style="width: 16px; height: 16px; stroke-width: 2.5px;"></i>
+                        </button>
                         <button class="btn-action-list red" onclick="event.stopPropagation(); deleteApplication('${key}')" title="Delete Update">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
+                            <i data-lucide="trash-2" style="width: 16px; height: 16px; stroke-width: 2.5px;"></i>
                         </button>
                     </div>
                 `;
                 container.appendChild(item);
             });
+            tryCreateIcons();
         }
 
         function loadAppConfig(key) {
             const app = localAppsDatabase[key];
             if (app) {
+                isEditingActive = true;
+                
                 document.getElementById('input-pkg-name').value = key.replace(/_/g, '.');
                 populateFormInputs(app);
                 updateLivePreview(app);
                 renderPushedList();
+                
+                // Show cancel button only during active edit mode
+                document.getElementById('btn-cancel-edit').style.display = 'block';
+                
+                showToast("Editing Active", "info");
+                switchDashboardTab('manage');
             }
         }
 
@@ -1250,16 +1585,19 @@
             element.value = element.value.replace(/[^a-zA-Z0-9.]/g, '');
         }
 
-        // Delete application configuration from Firebase [Fix 3]
+        // Delete application configuration from Firebase
         function deleteApplication(key) {
-            if (!dbUrl) return;
+            if (!dbUrl) {
+                showToast("Database Offline!", "error");
+                return;
+            }
             if (!confirm("Are you sure you want to delete this application's update configuration?")) return;
 
             const targetUrl = dbUrl + "apps/" + key + ".json";
             fetch(targetUrl, { method: 'DELETE' })
             .then(res => {
                 if (!res.ok) throw new Error();
-                showToast("Application update removed!", true);
+                showToast("Deleted!", "error");
                 
                 delete localAppsDatabase[key];
                 const currentOpenPkg = document.getElementById('input-pkg-name').value.replace(/\./g, '_');
@@ -1269,11 +1607,23 @@
                 renderPushedList();
             })
             .catch(err => {
-                showToast("Failed to remove application config!", false);
+                showToast("Failed!", "error");
             });
         }
 
+        // Cancel Edit handler
+        function triggerCancelEditAction() {
+            triggerButtonLoading('btn-cancel-edit', () => {
+                clearForm();
+                showToast("Cancelled", "info");
+            });
+        }
+
+        // Default state: Always clear form fields on launch
         function clearForm() {
+            isEditingActive = false; // Reset editing active lock
+            
+            document.getElementById('editor-title-header').innerText = "➕ Add New Application Update";
             document.getElementById('input-pkg-name').value = "";
             document.getElementById('input-enable').checked = false;
             document.getElementById('input-force').checked = false;
@@ -1296,7 +1646,10 @@
             document.getElementById('input-schedule-time').value = "";
             toggleSchedulerFields();
 
-            // Fix 3: Auto-load default settings upon clearing [3]
+            // Hide cancel edit button
+            document.getElementById('btn-cancel-edit').style.display = 'none';
+
+            // Auto-load default settings upon clearing
             loadAndApplyDefaultFillSettings();
         }
 
@@ -1322,7 +1675,27 @@
             }
         }
 
-        // Real-Time Listener on database node using polling [2, 4]
+        // Switch Dashboard Tabs
+        function switchDashboardTab(tab) {
+            const btnManage = document.getElementById('tab-manage');
+            const btnSettings = document.getElementById('tab-settings');
+            const paneManage = document.getElementById('pane-manage');
+            const paneSettings = document.getElementById('pane-settings');
+
+            if (tab === 'manage') {
+                btnManage.classList.add('active');
+                btnSettings.classList.remove('active');
+                paneManage.style.display = 'grid';
+                paneSettings.style.display = 'none';
+            } else {
+                btnManage.classList.remove('active');
+                btnSettings.classList.add('active');
+                paneManage.style.display = 'none';
+                paneSettings.style.display = 'grid';
+            }
+        }
+
+        // Real-Time Listener on database node using polling
         function startRealtimeSyncListener() {
             if (syncInterval) {
                 clearInterval(syncInterval);
@@ -1339,19 +1712,20 @@
                             localAppsDatabase = data;
                             renderPushedList();
                             
-                            // Live update fields of selected app only if editor fields are not currently focused
-                            const currentPkg = document.getElementById('input-pkg-name').value.replace(/\./g, '_');
-                            if (currentPkg && localAppsDatabase[currentPkg]) {
-                                const app = localAppsDatabase[currentPkg];
-                                if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-                                    populateFormInputs(app);
+                            if (!isEditingActive) {
+                                const currentPkg = document.getElementById('input-pkg-name').value.replace(/\./g, '_');
+                                if (currentPkg && localAppsDatabase[currentPkg]) {
+                                    const app = localAppsDatabase[currentPkg];
+                                    if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA' && document.activeElement.tagName !== 'SELECT') {
+                                        populateFormInputs(app);
+                                    }
+                                    updateLivePreview(app);
                                 }
-                                updateLivePreview(app);
                             }
                         }
                     })
                     .catch(err => {
-                        console.log("Sync error: ", err);
+                        console.log("Sync polling is active");
                     });
             }, 6000); 
         }
@@ -1378,7 +1752,7 @@
             document.getElementById('input-exit-gradient').value = data.button_exit_color || '#FF496F,#FF5E3A';
             document.getElementById('input-update-gradient').value = data.button_update_color || '#00E5FF,#0077FF';
 
-            // Scheduler populate [7]
+            // Scheduler populate
             if (data.scheduleDate && data.scheduleTime) {
                 document.getElementById('input-schedule-toggle').checked = true;
                 document.getElementById('input-schedule-date').value = data.scheduleDate;
@@ -1413,40 +1787,33 @@
             toggleIconUrlField();
         }
 
-        // Auto-fetch target app version from silent telemetry node [Fix 7]
+        // Auto-fetch target app version from silent telemetry node
         function autoFetchInstalledVersion() {
-            const pkgInput = document.getElementById('input-pkg-name').value.trim();
-            if (!dbUrl || !pkgInput) {
-                showToast("Connect database and enter a Package Name first!", false);
-                return;
-            }
+            triggerButtonLoading('btn-auto-fetch', () => {
+                const pkgInput = document.getElementById('input-pkg-name').value.trim();
+                if (!dbUrl || !pkgInput) {
+                    showToast("Package Required!", "error");
+                    return;
+                }
 
-            const safePackage = pkgInput.replace(/\./g, '_');
-            const fetchBtn = document.getElementById('btn-auto-fetch');
-            const originalText = fetchBtn.innerText;
-            fetchBtn.innerText = "WAIT...";
-            fetchBtn.disabled = true;
+                const safePackage = pkgInput.replace(/\./g, '_');
+                const telemetryUrl = dbUrl + "telemetry/" + safePackage + ".json?nocache=" + Date.now();
 
-            const telemetryUrl = dbUrl + "telemetry/" + safePackage + ".json?nocache=" + Date.now();
-
-            fetch(telemetryUrl)
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.installed_version) {
-                        document.getElementById('input-app-version').value = data.installed_version;
-                        updateLocalPreviewFromForm();
-                        showToast(`Version name '${data.installed_version}' fetched from active telemetry!`, true);
-                    } else {
-                        showToast("Telemetry offline! Run the target application once to register version.", false);
-                    }
-                })
-                .catch(err => {
-                    showToast("Failed to retrieve telemetry details!", false);
-                })
-                .finally(() => {
-                    fetchBtn.innerText = originalText;
-                    fetchBtn.disabled = false;
-                });
+                fetch(telemetryUrl)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.installed_version) {
+                            document.getElementById('input-app-version').value = data.installed_version;
+                            updateLocalPreviewFromForm();
+                            showToast("Fetched!", "success");
+                        } else {
+                            showToast("Offline!", "error");
+                        }
+                    })
+                    .catch(err => {
+                        showToast("Failed!", "error");
+                    });
+            });
         }
 
         // Parse fields from local form input values to feed real-time Live Preview
@@ -1490,7 +1857,7 @@
             updateLivePreview(data);
         }
 
-        // Live preview replica rendering (Now with Squircle logo matching [3, 4])
+        // Live preview replica rendering
         function updateLivePreview(data) {
             const dialog = document.getElementById('preview-dialog');
             const logoWrapper = document.getElementById('preview-logo-wrapper');
@@ -1570,10 +1937,15 @@
             return [parts[0].trim(), parts[1].trim()];
         }
 
-        /* Fix 3: Default Fill Settings Logic [3] */
+        /* Default Fill Settings Logic */
+        function triggerSaveDefaultsAction() {
+            saveDefaultFillSettings();
+        }
+
         function saveDefaultFillSettings() {
             if (!dbUrl) {
-                showToast("Connect database first to save remote defaults!", false);
+                showToast("Dabase Offline. Cache saved locally.", "info");
+                saveDefaultsLocally();
                 return;
             }
 
@@ -1594,13 +1966,25 @@
             })
             .then(res => {
                 if (!res.ok) throw new Error();
-                showToast("Default Fill Settings Saved Remotely!", true);
+                showToast("Default Fill Settings Saved Remotely!", "success");
                 localStorage.setItem('yomo_defaults', JSON.stringify(defaults));
             })
             .catch(err => {
-                showToast("Failed to save defaults remotely. Cache saved locally.", false);
+                showToast("Failed to save defaults remotely. Cache saved locally.", "error");
                 localStorage.setItem('yomo_defaults', JSON.stringify(defaults));
             });
+        }
+
+        function saveDefaultsLocally() {
+            const defaults = {
+                developer: document.getElementById('default-developer').value.trim(),
+                button_exit_text: document.getElementById('default-btn-exit-text').value.trim(),
+                button_update_text: document.getElementById('default-btn-update-text').value.trim(),
+                update_url: document.getElementById('default-update-url').value.trim(),
+                background_gradient: document.getElementById('default-bg-gradient').value.trim(),
+                description: document.getElementById('default-description').value
+            };
+            localStorage.setItem('yomo_defaults', JSON.stringify(defaults));
         }
 
         function loadAndApplyDefaultFillSettings() {
@@ -1610,7 +1994,7 @@
                 applyDefaultsToInputs(JSON.parse(localDefaults));
             }
 
-            // Fetch live remote defaults silently if connected [1]
+            // Fetch live remote defaults silently if connected
             if (dbUrl) {
                 fetch(dbUrl + "defaults.json?nocache=" + Date.now())
                     .then(res => res.json())
@@ -1642,10 +2026,14 @@
             if (!document.getElementById('input-description').value) document.getElementById('input-description').value = data.description || '';
         }
 
-        /* Fix 7: Backup and Restore operations [7] */
+        /* Backup and Restore operations */
+        function triggerBackupAction() {
+            backupDatabaseData();
+        }
+
         function backupDatabaseData() {
             if (!dbUrl) {
-                showToast("Connect database to backup configurations!", false);
+                showToast("Connect database to backup configurations!", "error");
                 return;
             }
             fetch(dbUrl + "apps.json?nocache=" + Date.now())
@@ -1658,14 +2046,14 @@
                     document.body.appendChild(downloadAnchor);
                     downloadAnchor.click();
                     downloadAnchor.remove();
-                    showToast("Database configuration backup successful!", true);
+                    showToast("Database configuration backup successful!", "success");
                 })
-                .catch(err => showToast("Failed to backup database data!", false));
+                .catch(err => showToast("Failed to backup database data!", "error"));
         }
 
         function triggerRestoreUpload() {
             if (!dbUrl) {
-                showToast("Connect database to restore configurations!", false);
+                showToast("Connect database to restore configurations!", "error");
                 return;
             }
             document.getElementById('restore-file-input').click();
@@ -1691,30 +2079,84 @@
                     })
                     .then(res => {
                         if (!res.ok) throw new Error();
-                        showToast("Configurations restored successfully!", true);
+                        showToast("Configurations restored successfully!", "success");
                         localAppsDatabase = parsedJson;
                         renderPushedList();
                     })
-                    .catch(err => showToast("Failed to write restored JSON to Firebase!", false));
+                    .catch(err => showToast("Failed to write restored JSON to Firebase!", "error"));
 
                 } catch (err) {
-                    showToast("Invalid JSON file structure!", false);
+                    showToast("Invalid JSON file structure!", "error");
                 }
                 input.value = "";
             };
             reader.readAsText(file);
         }
 
-        // Publish to Firebase database [1, 2]
+        /* Capsule Toast System */
+        function showToast(message, type = "success") {
+            const container = document.getElementById('toast-container');
+            
+            // Remove previous toast instantly to avoid stacking
+            const existingToast = container.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+                if (activeToastTimeout) clearTimeout(activeToastTimeout);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.style.transform = 'translateY(50px)';
+            toast.style.opacity = '0';
+            toast.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            toast.style.padding = '10px 20px';
+            toast.style.borderRadius = '30px';
+            toast.style.fontSize = '12px';
+            toast.style.fontWeight = '800';
+            toast.style.display = 'flex';
+            toast.style.alignItems = 'center';
+            toast.style.gap = '8px';
+            toast.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)';
+            toast.style.textTransform = 'uppercase';
+            toast.style.whiteSpace = 'nowrap';
+            toast.style.backdropFilter = 'blur(4px)'; // Blur effect
+            
+            toast.innerHTML = `
+                <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+            }, 10);
+
+            activeToastTimeout = setTimeout(() => {
+                toast.style.transform = 'translateY(-20px)';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 2500);
+        }
+
+        // Publish configuration with Button Spinner
+        function triggerPublishAction() {
+            triggerButtonLoading('btn-publish', () => {
+                publishConfiguration();
+            });
+        }
+
         function publishConfiguration() {
             const pkgInput = document.getElementById('input-pkg-name').value.trim();
             if (!dbUrl) {
-                showToast("Database Offline! Please enter your URL and connect first.", false);
+                showToast("Database Offline!", "error");
                 return;
             }
 
             if (!pkgInput) {
-                showToast("Application Package Name is compulsory!", false);
+                showToast("Application Package Name is compulsory!", "error");
                 return;
             }
 
@@ -1743,13 +2185,13 @@
             const showButtons = document.getElementById('input-show-buttons').checked;
             const showCredit = document.getElementById('input-show-credit').checked;
 
-            // Scheduler retrieval [7]
+            // Scheduler retrieval
             const isScheduled = document.getElementById('input-schedule-toggle').checked;
             const scheduleDate = isScheduled ? document.getElementById('input-schedule-date').value : "";
             const scheduleTime = isScheduled ? document.getElementById('input-schedule-time').value : "";
 
             if (!title || !appVersion || !newVersion || !updateUrl) {
-                showToast("Please fill all required Configuration fields!", false);
+                showToast("Please fill all required fields!", "error");
                 return;
             }
 
@@ -1778,11 +2220,6 @@
                 show_credit: showCredit
             };
 
-            const publishBtn = document.getElementById('btn-publish');
-            const originalText = publishBtn.innerHTML;
-            publishBtn.innerHTML = `<span class="spinner"></span> Syncing Nodes...`;
-            publishBtn.disabled = true;
-
             const targetUrl = dbUrl + "apps/" + safePackage + ".json";
 
             fetch(targetUrl, {
@@ -1800,45 +2237,14 @@
                 // Overwrite local memory data structure
                 localAppsDatabase[safePackage] = data;
                 renderPushedList();
-                showToast("Dialog Nodes Synchronized Successfully!", true);
+                showToast("Dialog Nodes Synchronized Successfully!", "success");
                 
                 // Clear form inputs
                 clearForm();
             })
             .catch((error) => {
-                showToast("Synchronization Failed: Check database rules!", false);
-            })
-            .finally(() => {
-                publishBtn.innerHTML = originalText;
-                publishBtn.disabled = false;
+                showToast("Synchronization Failed!", "error");
             });
-        }
-
-        // Custom Toast Notifications
-        function showToast(message, isSuccess) {
-            const existingToast = document.querySelector('.toast');
-            if (existingToast) {
-                existingToast.remove();
-            }
-
-            const toast = document.createElement('div');
-            toast.className = `toast ${isSuccess ? 'toast-success' : 'toast-error'}`;
-            toast.innerHTML = `
-                <span>${isSuccess ? '✅' : '❌'}</span>
-                <span>${message}</span>
-            `;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.classList.add('show');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => {
-                    toast.remove();
-                }, 300);
-            }, 3000);
         }
     </script>
 </body>
