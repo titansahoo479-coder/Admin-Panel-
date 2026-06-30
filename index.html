@@ -19,14 +19,14 @@
 
     <style>
         :root {
-            /* Light theme colors */
+            /* Light theme colors - Slightly enhanced border color visibility */
             --bg-base: #f7f5fd;
             --primary: #7F00FF;
             --primary-gradient: linear-gradient(135deg, #7F00FF, #E100FF);
             --card-bg: #ffffff;
             --text-main: #231145;
             --text-sub: #6c5f80;
-            --border-color: #ebdff0;
+            --border-color: #dbd1eb; /* Enhanced light-grey stroke */
             --success: #00C853;
             --error: #FF1744;
             --btn-exit-default: linear-gradient(135deg, #FF496F, #FF5E3A);
@@ -34,12 +34,12 @@
         }
 
         body.dark-theme {
-            /* Dark theme colors */
+            /* Dark theme colors - Enhanced dark border visibility */
             --bg-base: #120a21;
             --card-bg: #1d1430;
             --text-main: #f3ecff;
             --text-sub: #a89cb8;
-            --border-color: #3b2c4c;
+            --border-color: #4a3a61; /* Enhanced dark stroke */
         }
 
         * {
@@ -87,7 +87,7 @@
             border-radius: 30px;
             padding: 32px 24px;
             box-shadow: 0 15px 45px rgba(127, 0, 255, 0.08);
-            border: 1.5px solid var(--border-color);
+            border: 1.8px solid var(--border-color);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -124,7 +124,7 @@
             margin-bottom: 28px;
         }
 
-        /* Header Area - Permanently Fixed at Top with 1px adaptable light-grey border */
+        /* Header Area - Permanently Fixed at Top with enhanced 1.8px adaptable light-grey border */
         header {
             position: fixed !important;
             top: 0;
@@ -137,12 +137,12 @@
             align-items: center;
             padding: 16px 24px;
             background-color: var(--card-bg);
-            border: 1px solid var(--border-color) !important;
+            border: 1.8px solid var(--border-color) !important;
             box-sizing: border-box;
             box-shadow: 0 4px 20px rgba(127, 0, 255, 0.02);
         }
 
-        /* Dashboard Top Wrapper - Pushes rest of content below the fixed header to prevent overlap */
+        /* Dashboard Top Wrapper - Pushes rest of content below fixed header */
         .sticky-top-container {
             position: relative;
             background-color: var(--bg-base);
@@ -157,7 +157,7 @@
             background-color: var(--bg-base);
         }
 
-        /* Upgraded Metric Status widgets */
+        /* Upgraded Metric Status widgets with enhanced 1.8px borders */
         .stats-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr) !important;
@@ -174,7 +174,7 @@
             align-items: center;
             gap: 12px;
             box-shadow: 0 8px 24px rgba(127, 0, 255, 0.03);
-            border: 1.5px solid rgba(235, 223, 240, 0.4);
+            border: 1.8px solid var(--border-color) !important;
             width: 100%;
         }
 
@@ -336,7 +336,7 @@
                 height: 64px; /* Mobile header fixed height */
             }
             .sticky-top-container {
-                padding-top: 64px; /* Offsets top for mobile */
+                padding-top: 64px; /* Offset top for mobile fixed header */
             }
         }
 
@@ -374,8 +374,6 @@
 
         .header-right {
             display: flex;
-            align-items: center;
-            gap: 12px;
         }
 
         .btn-header-action {
@@ -401,13 +399,13 @@
             color: var(--error);
         }
 
-        /* Standalone App Cards & Form Cards */
+        /* Standalone App Cards & Form Cards with enhanced 1.8px borders */
         .section-card {
             background-color: var(--card-bg);
             border-radius: 28px;
             padding: 24px;
             box-shadow: 0 10px 30px rgba(127, 0, 255, 0.04);
-            border: 1.5px solid var(--border-color);
+            border: 1.8px solid var(--border-color) !important;
             width: 100%;
             box-sizing: border-box;
             height: auto !important; 
@@ -439,7 +437,7 @@
 
         #card-pushed-list .input-field {
             background-color: var(--card-bg) !important;
-            border: 1.5px solid var(--border-color);
+            border: 1.8px solid var(--border-color) !important;
             box-shadow: 0 4px 12px rgba(127, 0, 255, 0.02);
         }
 
@@ -481,7 +479,7 @@
             width: 100%;
             height: 52px; 
             padding: 12px 16px;
-            border: 1.5px solid var(--border-color);
+            border: 1.8px solid var(--border-color) !important;
             border-radius: 16px;
             font-size: 14px;
             color: var(--text-main);
@@ -686,7 +684,7 @@
             overflow-y: visible;
         }
 
-        /* Standalone custom app item cards */
+        /* Standalone custom app item cards with enhanced 1.8px borders */
         .app-item {
             display: flex !important;
             flex-direction: row !important;
@@ -695,7 +693,7 @@
             padding: 16px 20px !important;
             border-radius: 20px !important; 
             background-color: var(--card-bg) !important;
-            border: 1.5px solid var(--border-color) !important;
+            border: 1.8px solid var(--border-color) !important;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 6px 18px rgba(127, 0, 255, 0.02) !important;
@@ -806,7 +804,7 @@
             transform: scale(0.9);
         }
 
-        /* Java Dialog preview structure */
+        /* Java Dialog preview structure with enhanced 2px borders */
         .preview-wrapper {
             display: flex;
             justify-content: center;
@@ -820,7 +818,7 @@
             width: 100%;
             max-width: 340px;
             border-radius: 28px;
-            border: 2px solid #D3D3D3;
+            border: 2px solid var(--border-color) !important;
             padding: 20px;
             box-sizing: border-box;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
@@ -848,7 +846,7 @@
             height: 80px;
             background-color: #fff;
             border-radius: 18px;
-            border: 3px solid #FF003C;
+            border: 3px solid #FF003C !important;
             box-sizing: border-box;
             position: relative;
             display: flex;
@@ -1131,20 +1129,38 @@
                             <input type="text" class="input-field" id="input-developer" placeholder="Mod by YOMO MODZ" oninput="updateLocalPreviewFromForm()">
                         </div>
 
-                        <!-- Custom Gradients Section -->
+                        <!-- Custom Gradients Section with dual picker buttons -->
                         <div class="input-group">
                             <label class="input-label">Dialog Background Gradient (Comma separated Hex, Left-Right)</label>
-                            <input type="text" class="input-field" id="input-bg-gradient" placeholder="#5C74E5,#8FA2F8" oninput="updateLocalPreviewFromForm()">
+                            <div style="position: relative; display: flex; align-items: center; width: 100%;">
+                                <input type="text" class="input-field" id="input-bg-gradient" placeholder="#5C74E5,#8FA2F8" oninput="updateLocalPreviewFromForm()" style="padding-right: 155px;">
+                                <div style="position: absolute; right: 8px; display: flex; gap: 4px; align-items: center; height: 100%;">
+                                    <button onclick="openDualColorPicker('input-bg-gradient')" style="font-size: 10px; font-weight: 800; background-color: var(--primary); color: white; border: none; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 2px;"><i data-lucide="palette" style="width: 12px; height: 12px;"></i> PICK</button>
+                                    <button onclick="resetGradientField('input-bg-gradient', '#5C74E5,#8FA2F8')" style="font-size: 10px; font-weight: 800; background-color: #fbe8ea; color: var(--error); border: none; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 2px;"><i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i> RESET</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="input-row color-row">
                             <div class="input-group">
                                 <label class="input-label">Exit Btn Gradient</label>
-                                <input type="text" class="input-field" id="input-exit-gradient" placeholder="#FF496F,#FF5E3A" oninput="updateLocalPreviewFromForm()">
+                                <div style="position: relative; display: flex; align-items: center; width: 100%;">
+                                    <input type="text" class="input-field" id="input-exit-gradient" placeholder="#FF496F,#FF5E3A" oninput="updateLocalPreviewFromForm()" style="padding-right: 155px;">
+                                    <div style="position: absolute; right: 8px; display: flex; gap: 4px; align-items: center; height: 100%;">
+                                        <button onclick="openDualColorPicker('input-exit-gradient')" style="font-size: 10px; font-weight: 800; background-color: var(--primary); color: white; border: none; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 2px;"><i data-lucide="palette" style="width: 12px; height: 12px;"></i> PICK</button>
+                                        <button onclick="resetGradientField('input-exit-gradient', '#FF496F,#FF5E3A')" style="font-size: 10px; font-weight: 800; background-color: #fbe8ea; color: var(--error); border: none; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 2px;"><i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i> RESET</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="input-group">
                                 <label class="input-label">Update Btn Gradient</label>
-                                <input type="text" class="input-field" id="input-update-gradient" placeholder="#00E5FF,#0077FF" oninput="updateLocalPreviewFromForm()">
+                                <div style="position: relative; display: flex; align-items: center; width: 100%;">
+                                    <input type="text" class="input-field" id="input-update-gradient" placeholder="#00E5FF,#0077FF" oninput="updateLocalPreviewFromForm()" style="padding-right: 155px;">
+                                    <div style="position: absolute; right: 8px; display: flex; gap: 4px; align-items: center; height: 100%;">
+                                        <button onclick="openDualColorPicker('input-update-gradient')" style="font-size: 10px; font-weight: 800; background-color: var(--primary); color: white; border: none; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 2px;"><i data-lucide="palette" style="width: 12px; height: 12px;"></i> PICK</button>
+                                        <button onclick="resetGradientField('input-update-gradient', '#00E5FF,#0077FF')" style="font-size: 10px; font-weight: 800; background-color: #fbe8ea; color: var(--error); border: none; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 2px;"><i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i> RESET</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1270,7 +1286,13 @@
                             </div>
                             <div class="input-group">
                                 <label class="input-label">Default Bg Gradient</label>
-                                <input type="text" class="input-field" id="default-bg-gradient" placeholder="#5C74E5,#8FA2F8">
+                                <div style="position: relative; display: flex; align-items: center; width: 100%;">
+                                    <input type="text" class="input-field" id="default-bg-gradient" placeholder="#5C74E5,#8FA2F8" style="padding-right: 155px;">
+                                    <div style="position: absolute; right: 8px; display: flex; gap: 4px; align-items: center; height: 100%;">
+                                        <button onclick="openDualColorPicker('default-bg-gradient')" style="font-size: 10px; font-weight: 800; background-color: var(--primary); color: white; border: none; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 2px;"><i data-lucide="palette" style="width: 12px; height: 12px;"></i> PICK</button>
+                                        <button onclick="resetGradientField('default-bg-gradient', '#5C74E5,#8FA2F8')" style="font-size: 10px; font-weight: 800; background-color: #fbe8ea; color: var(--error); border: none; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 2px;"><i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i> RESET</button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="input-group">
                                 <label class="input-label">Default Description</label>
@@ -1309,6 +1331,29 @@
 
     </div>
 
+    <!-- Micro Modal for Dual Color Picking (FIXED: Center align-self and margin setup) -->
+    <div id="dual-picker-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100000; align-items: center; justify-content: center; padding: 20px;">
+        <div class="section-card" style="max-width: 320px; background: var(--card-bg); border-radius: 24px; padding: 24px; text-align: center; border: 1.8px solid var(--border-color); box-shadow: 0 10px 40px rgba(0,0,0,0.15); align-self: center !important; margin: 0 auto !important;">
+            <div style="font-size: 16px; font-weight: 800; margin-bottom: 16px; color: var(--primary);">🎨 Select Gradient Colors</div>
+            <div style="display: flex; justify-content: space-around; margin-bottom: 20px; gap: 16px;">
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase;">Color 1</div>
+                    <input type="color" id="modal-color-1" value="#5C74E5" style="width: 60px; height: 60px; border: none; cursor: pointer; border-radius: 12px; background: transparent;">
+                </div>
+                <div>
+                    <div style="font-size: 11px; font-weight: 700; margin-bottom: 6px; text-transform: uppercase;">Color 2</div>
+                    <input type="color" id="modal-color-2" value="#8FA2F8" style="width: 60px; height: 60px; border: none; cursor: pointer; border-radius: 12px; background: transparent;">
+                </div>
+            </div>
+            <!-- Live Preview of Gradient Selection -->
+            <div id="modal-gradient-preview" style="width: 100%; height: 40px; border-radius: 12px; margin-bottom: 20px; border: 1.8px solid var(--border-color); background: linear-gradient(to right, #5C74E5, #8FA2F8);"></div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary" onclick="closeDualColorPicker()" style="height: 44px; font-size: 13px;">Cancel</button>
+                <button class="btn-primary" onclick="confirmDualColorSelection()" style="height: 44px; font-size: 13px;">Apply</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Capsule Toast system -->
     <div id="toast-container" style="position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 8px; pointer-events: none;"></div>
 
@@ -1318,6 +1363,7 @@
         let localAppsDatabase = {}; // Local memory of Firebase applications node
         let isEditingActive = false; // State-guard to completely isolate dropdowns
         let activeToastTimeout = null;
+        let activePickerTargetId = ""; // Track color picker target field
 
         // Auto-reconnect on Page load
         window.addEventListener('DOMContentLoaded', () => {
@@ -1522,6 +1568,10 @@
                 // Default placeholder logic
                 const displayLogo = (app.show_logo && app.iconMode === 'custom' && app.logo) ? app.logo : "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2'%3e%3crect x='2' y='2' width='20' height='20' rx='5' ry='5'%3e%3c/rect%3e%3cpath d='M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z'%3e%3c/svg%3e";
 
+                // Formatted display version string
+                const displayVersion = (app.newVersion || '1.0.0').startsWith('v') ? (app.newVersion || '1.0.0') : `v${app.newVersion || '1.0.0'}`;
+
+                // Render standalone card with Title and Package Name | Version subtitle
                 item.innerHTML = `
                     <div class="app-item-info">
                         <div class="app-item-icon-wrapper">
@@ -1529,7 +1579,7 @@
                         </div>
                         <div class="app-item-meta">
                             <div class="app-item-name">${app.title || 'Untitled App'}</div>
-                            <div class="app-item-pkg">Version ${app.newVersion || '1.0.0'}</div>
+                            <div class="app-item-pkg">${cleanPkg} | ${displayVersion}</div>
                         </div>
                     </div>
                     <div class="app-item-actions">
@@ -2091,6 +2141,68 @@
                 input.value = "";
             };
             reader.readAsText(file);
+        }
+
+        /* Dual Gradient Color Picker Modal Operations */
+        function openDualColorPicker(targetId) {
+            activePickerTargetId = targetId;
+            const currentVal = document.getElementById(targetId).value.trim();
+            let c1 = "#5C74E5";
+            let c2 = "#8FA2F8";
+            
+            // Auto fallback formats if invalid
+            if (currentVal) {
+                const colors = currentVal.split(",");
+                if (colors.length >= 1 && colors[0].startsWith("#")) c1 = colors[0].trim();
+                if (colors.length >= 2 && colors[1].startsWith("#")) c2 = colors[1].trim();
+            }
+            
+            document.getElementById('modal-color-1').value = c1;
+            document.getElementById('modal-color-2').value = c2;
+            updateModalGradientPreview();
+            
+            // Connect dynamic preview update listeners
+            document.getElementById('modal-color-1').oninput = updateModalGradientPreview;
+            document.getElementById('modal-color-2').oninput = updateModalGradientPreview;
+
+            document.getElementById('dual-picker-modal').style.display = 'flex';
+        }
+
+        function updateModalGradientPreview() {
+            const c1 = document.getElementById('modal-color-1').value;
+            const c2 = document.getElementById('modal-color-2').value;
+            document.getElementById('modal-gradient-preview').style.background = `linear-gradient(to right, ${c1}, ${c2})`;
+        }
+
+        function closeDualColorPicker() {
+            document.getElementById('dual-picker-modal').style.display = 'none';
+        }
+
+        function confirmDualColorSelection() {
+            const c1 = document.getElementById('modal-color-1').value;
+            const c2 = document.getElementById('modal-color-2').value;
+            const formatted = `${c1},${c2}`;
+            
+            if (activePickerTargetId) {
+                const targetInput = document.getElementById(activePickerTargetId);
+                targetInput.value = formatted;
+                
+                // Fire dynamic update events immediately
+                if (activePickerTargetId.startsWith('input-')) {
+                    updateLocalPreviewFromForm();
+                }
+            }
+            closeDualColorPicker();
+            showToast("Gradient Applied!", "success");
+        }
+
+        function resetGradientField(targetId, defaultValue) {
+            const targetInput = document.getElementById(targetId);
+            targetInput.value = defaultValue;
+            if (targetId.startsWith('input-')) {
+                updateLocalPreviewFromForm();
+            }
+            showToast("Gradient Reset!", "info");
         }
 
         /* Capsule Toast System */
